@@ -7,6 +7,7 @@
 virtualenv -p python3.6 venv
 source venv/bin/activate
 pip install -r requirements.txt
+pip install tensorflow==2.1.0
 ```
 
 ## Download embeddings
