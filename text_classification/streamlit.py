@@ -27,7 +27,7 @@ st.title("Made With ML · Creating an End-to-End ML Application")
 st.write("""[<img src="https://github.com/madewithml/images/blob/master/images/yt.png?raw=true" style="width:1.2rem;"> Watch Lesson](https://www.youtube.com/channel/UCaVCnFQXS7PYMoYZu3KdC0Q/featured) · [<img src="https://github.com/madewithml/images/blob/master/images/github_logo.png?raw=true" style="width:1.1rem;"> GitHub](https://www.github.com/madewithml/lessons) · [<img src="https://avatars0.githubusercontent.com/u/60439358?s=200&v=4" style="width:1.2rem;"> Made With ML](https://madewithml.com)""", unsafe_allow_html=True)
 
 # Get best run
-project = 'GokuMohandas/e2e-ml-app-pytorch'
+project = 'GokuMohandas/e2e-ml-app-tensorflow'
 best_run = utils.get_best_run(project=project,
                               metric="test_loss", objective="minimize")
 
@@ -35,7 +35,7 @@ best_run = utils.get_best_run(project=project,
 best_run_dir = utils.load_run(run=best_run)
 
 # Get run components for inference
-args, model, X_tokenizer, y_tokenizer = predict.get_run_components(
+args, model, conv_outputs_model, X_tokenizer, y_tokenizer = predict.get_run_components(
     run_dir=best_run_dir)
 
 # Pages
@@ -47,10 +47,11 @@ if page == 'Inference':
 
     # Input text
     text = st.text_input(
-        "Enter text to classify", value="The Canadian government officials proposed the new federal law.")
+        "Enter text to classify", value="The Canadian minister signed in the new federal law.")
 
     # Predict
     results = predict.predict(inputs=[{'text': text}], args=args, model=model,
+                              conv_outputs_model=conv_outputs_model,
                               X_tokenizer=X_tokenizer, y_tokenizer=y_tokenizer)
 
     # Results
