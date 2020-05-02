@@ -1,1 +1,1 @@
-web: wandb login && pip install tensorflow-cpu==2.1.0 && sh setup.sh && streamlit run text_classification/streamlit.py
+web: wandb login && sh setup.sh && streamlit run text_classification/streamlit.py
