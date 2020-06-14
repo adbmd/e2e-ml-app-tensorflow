@@ -20,7 +20,6 @@ from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import ReduceLROnPlateau
-from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import SparseCategoricalAccuracy
 from tensorflow.keras.optimizers import Adam
@@ -154,24 +153,24 @@ if __name__ == '__main__':
     # Load data
     X, y = data.load_data(url=args.data_url, data_size=args.data_size)
     config.logger.info(
-        "→ Raw data:\n"
-        f"  {X[0]} → {y[0]}")
+        "Raw data:\n"
+        f"  {X[0]} {y[0]}")
 
     # Split data
     X_train, X_val, X_test, y_train, y_val, y_test = data.train_val_test_split(
         X=X, y=y, val_size=args.val_size, test_size=args.test_size, shuffle=args.shuffle)
     config.logger.info(
-        "→ Data splits:\n"
-        f"  X_train: {len(X_train)}, y_train: {len(y_train)}\n"
-        f"  X_val: {len(X_val)}, y_val: {len(y_val)}\n"
-        f"  X_test: {len(X_test)}, y_test: {len(y_test)}")
+        "Data splits:\n"
+        f"\tX_train: {len(X_train)}, y_train: {len(y_train)}\n"
+        f"\tX_val: {len(X_val)}, y_val: {len(y_val)}\n"
+        f"\tX_test: {len(X_test)}, y_test: {len(y_test)}")
 
     # Tokenizer
     X_tokenizer = Tokenizer(
         filters=args.filters, lower=args.lower, char_level=args.char_level, oov_token='<UNK>')
     X_tokenizer.fit_on_texts(X_train)
     vocab_size = len(X_tokenizer.word_index) + 1  # +1 for padding token
-    config.logger.info(f"→ vocab_size: {vocab_size}")
+    config.logger.info(f"vocab_size: {vocab_size}")
 
     # Convert texts to sequences of indices
     original_text = X_train[0]
@@ -180,17 +179,17 @@ if __name__ == '__main__':
     X_test = np.array(X_tokenizer.texts_to_sequences(X_test))
     preprocessed_text = X_tokenizer.sequences_to_texts([X_train[0]])[0]
     config.logger.info(
-        "→ Text to indices:\n"
-        f"  (raw) → {original_text}\n"
-        f"  (preprocessed) → {preprocessed_text}\n"
-        f"  (tokenized) → {X_train[0]}")
+        "Text to indices:\n"
+        f"  (raw) {original_text}\n"
+        f"  (preprocessed) {preprocessed_text}\n"
+        f"  (tokenized) {X_train[0]}")
 
     # Label encoder
     y_tokenizer = LabelEncoder()
     y_tokenizer = y_tokenizer.fit(y_train)
     classes = y_tokenizer.classes_
     config.logger.info(
-        "→ classes:\n"
+        "classes:\n"
         f"  {classes}")
 
     # Convert labels to tokens
@@ -199,16 +198,16 @@ if __name__ == '__main__':
     y_val = y_tokenizer.transform(y_val)
     y_test = y_tokenizer.transform(y_test)
     config.logger.info(
-        "→ Labels to indices:\n"
+        "Labels to indices:\n"
         f"  {class_} → {y_train[0]}")
 
     # Class weights
     counts = np.bincount(y_train)
     class_weights = {i: 1.0/count for i, count in enumerate(counts)}
     config.logger.info(
-        "→ class counts:\n"
+        "class counts:\n"
         f"  {counts}\n"
-        "→ class weights:\n"
+        "class weights:\n"
         f"  {class_weights}")
 
     # Dataset generators
@@ -223,11 +222,11 @@ if __name__ == '__main__':
         max_filter_size=max(args.filter_sizes))
     batch_X, batch_y = training_generator[0]  # sample
     config.logger.info(
-        "→ Dataset generators:\n"
-        f"  (training_generator) → {training_generator}\n"
-        f"  (validation_generator) → {validation_generator}\n"
-        f"  (testing_generator) → {testing_generator}\n"
-        "→ Sample batch:\n"
+        "Dataset generators:\n"
+        f"  (training_generator) {training_generator}\n"
+        f"  (validation_generator) {validation_generator}\n"
+        f"  (testing_generator) {testing_generator}\n"
+        "Sample batch:\n"
         f"  X: {batch_X.shape}\n"
         f"  y: {batch_y.shape}\n")
 
@@ -245,7 +244,7 @@ if __name__ == '__main__':
             embeddings=glove_embeddings, token_to_index=X_tokenizer.word_index,
             embedding_dim=args.embedding_dim)
         config.logger.info(
-            "→ GloVe Embeddings:\n"
+            "GloVe Embeddings:\n"
             f"{embedding_matrix.shape}")
 
     # Initialize model
@@ -285,7 +284,7 @@ if __name__ == '__main__':
     y_pred = np.argmax(y_pred, axis=1)
     test_loss, test_acc = test_history[0:2]
     config.logger.info(
-        "→ Test performance:\n"
+        "Test performance:\n"
         f"  test_loss: {test_loss:.2f}, test_acc: {test_acc:.1f}")
     wandb.log({
         "test_loss": test_loss,

@@ -95,18 +95,18 @@ def predict(inputs, args, model, conv_outputs_model, X_tokenizer, y_tokenizer):
 
     # Create dataset generator
     texts = [sample['text'] for sample in inputs]
-    X_infer = np.array(X_tokenizer.texts_to_sequences(texts))
-    preprocessed_texts = X_tokenizer.sequences_to_texts(X_infer)
-    y_filler = np.array([0]*len(X_infer))
-    inference_generator = data.DataGenerator(
-        X=X_infer, y=y_filler, batch_size=args.batch_size,
+    X = np.array(X_tokenizer.texts_to_sequences(texts))
+    preprocessed_texts = X_tokenizer.sequences_to_texts(X)
+    y_filler = np.array([0]*len(X))
+    prediction_generator = data.DataGenerator(
+        X=X, y=y_filler, batch_size=args.batch_size,
         max_filter_size=max(args.filter_sizes))
 
     # Predict
     results = []
-    y_prob = model.predict(x=inference_generator, verbose=1)
-    conv_outputs = conv_outputs_model.predict(x=inference_generator, verbose=1)
-    for index in range(len(X_infer)):
+    y_prob = model.predict(x=prediction_generator, verbose=1)
+    conv_outputs = conv_outputs_model.predict(x=prediction_generator, verbose=1)
+    for index in range(len(X)):
         results.append({
             'raw_input': texts[index],
             'preprocessed_input': preprocessed_texts[index],
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     # Load best run (if needed)
     best_run_dir = utils.load_run(run=best_run)
 
-    # Get run components for inference
+    # Get run components for prediction
     args, model, conv_outputs_model, X_tokenizer, y_tokenizer = get_run_components(
         run_dir=best_run_dir)
 

@@ -27,7 +27,7 @@ best_run = utils.get_best_run(project="GokuMohandas/e2e-ml-app-tensorflow",
 # Load best run (if needed)
 best_run_dir = utils.load_run(run=best_run)
 
-# Get run components for inference
+# Get run components for prediction
 args, model, conv_outputs_model, X_tokenizer, y_tokenizer = get_run_components(
     run_dir=best_run_dir)
 
