@@ -33,6 +33,22 @@ def load_data(url, data_size):
     return X, y
 
 
+def preprocess_texts(texts):
+    preprocessed_texts = []
+    for text in texts:
+        # remove items text in () ex. (Reuters)
+        # may want to refine to only remove if at end of text
+        text = re.sub(r'\([^)]*\)', '', text)
+
+        # spacing
+        text = re.sub(r"([.,!?])", r" \1 ", text)
+        text = re.sub(' +', ' ', text)  # remove multiple spaces
+        text = text.strip()
+
+        preprocessed_texts.append(text)
+    return preprocessed_texts
+
+
 def train_val_test_split(X, y, val_size, test_size, shuffle):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, stratify=y, shuffle=shuffle)

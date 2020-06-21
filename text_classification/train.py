@@ -20,9 +20,6 @@ from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import ReduceLROnPlateau
-from tensorflow.keras.losses import SparseCategoricalCrossentropy
-from tensorflow.keras.metrics import SparseCategoricalAccuracy
-from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.text import Tokenizer
 
 from text_classification import config
@@ -156,6 +153,13 @@ if __name__ == '__main__':
         "Raw data:\n"
         f"  {X[0]} {y[0]}")
 
+    # Preprocess (filtering is done later via tokenizer)
+    original_X = X
+    X = data.preprocess_texts(texts=X)
+    config.logger.info(
+        "Preprocessed data:\n"
+        f"  {original_X[0]} → {X[0]}")
+
     # Split data
     X_train, X_val, X_test, y_train, y_val, y_test = data.train_val_test_split(
         X=X, y=y, val_size=args.val_size, test_size=args.test_size, shuffle=args.shuffle)
@@ -167,7 +171,8 @@ if __name__ == '__main__':
 
     # Tokenizer
     X_tokenizer = Tokenizer(
-        filters=args.filters, lower=args.lower, char_level=args.char_level, oov_token='<UNK>')
+        filters=args.filters, lower=args.lower,
+        char_level=args.char_level, oov_token='<UNK>')
     X_tokenizer.fit_on_texts(X_train)
     vocab_size = len(X_tokenizer.word_index) + 1  # +1 for padding token
     config.logger.info(f"vocab_size: {vocab_size}")
@@ -269,9 +274,7 @@ if __name__ == '__main__':
                  WandbCallback()]
 
     # Compile
-    model.compile(optimizer=Adam(lr=args.learning_rate),
-                  loss=SparseCategoricalCrossentropy(),
-                  metrics=[SparseCategoricalAccuracy()])
+    model.compile(learning_rate=args.learning_rate)
 
     # Training
     training_history = model.fit(
@@ -279,16 +282,16 @@ if __name__ == '__main__':
         callbacks=callbacks, shuffle=False, class_weight=class_weights, verbose=1)
 
     # Evaluation
-    test_history = model.evaluate(x=testing_generator, verbose=1)
+    test_history = model.evaluate(x=testing_generator, return_dict=True)
     y_pred = model.predict(x=testing_generator, verbose=1)
     y_pred = np.argmax(y_pred, axis=1)
-    test_loss, test_acc = test_history[0:2]
     config.logger.info(
         "Test performance:\n"
-        f"  test_loss: {test_loss:.2f}, test_acc: {test_acc:.1f}")
+        f"  test_loss: {test_history['loss']:.2f}\n"
+        f"  test_acc: {test_history['accuracy']:.1f}")
     wandb.log({
-        "test_loss": test_loss,
-        "test_accuracy": test_acc})
+        "test_loss": test_history['loss'],
+        "test_accuracy": test_history['accuracy']})
 
     # Per-class performance analysis
     performance = get_performance(y_pred, y_test, classes)

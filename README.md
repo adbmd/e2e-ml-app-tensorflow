@@ -147,7 +147,7 @@ text-classification/
 |   ├── predict.py                        - prediction script
 |   ├── streamlit.py                      - streamlit app
 |   ├── train.py                          - training script
-|   └── utils.py                          - load embeddings
+|   └── utils.py                          - load embeddings and utilities
 ├── wandb/                              - wandb experiment runs
 ├── .dockerignore                       - files to ignore on docker
 ├── .gitignore                          - files to ignore on git

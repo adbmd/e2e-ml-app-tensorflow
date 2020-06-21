@@ -1,3 +1,5 @@
+import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras.layers import Concatenate
 from tensorflow.keras.layers import Conv1D
 from tensorflow.keras.layers import Dense
@@ -5,11 +7,14 @@ from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import Embedding
 from tensorflow.keras.layers import GlobalMaxPool1D
 from tensorflow.keras.layers import Input
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.keras.metrics import SparseCategoricalAccuracy
 from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import plot_model
 
 
-class TextCNN(Model):
+class TextCNN(keras.Model):
     def __init__(self, vocab_size, embedding_dim, filter_sizes, num_filters,
                  hidden_dim, dropout_p, num_classes, freeze_embeddings=False):
         super(TextCNN, self).__init__(name="cnn")
@@ -61,6 +66,32 @@ class TextCNN(Model):
         logits = self.fc2(z)
 
         return logits
+
+    def compile(self, learning_rate):
+        super(TextCNN, self).compile()
+        self.optimizer = Adam(lr=learning_rate)
+        self.loss_fn = SparseCategoricalCrossentropy()
+        self.accuracy_fn = SparseCategoricalAccuracy()
+
+    def train_step(self, batch):
+        X, y, _ =  batch
+
+        with tf.GradientTape() as tape:
+            y_pred = self.call(X, training=True)
+            loss = self.loss_fn(y, y_pred)
+            accuracy = self.accuracy_fn(y, y_pred)
+
+        grads = tape.gradient(loss, self.trainable_weights)
+        self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
+
+        return {'loss':loss, 'accuracy': accuracy}
+
+    def test_step(self, batch):
+        X, y =  batch
+        y_pred = self.call(X)
+        loss = self.loss_fn(y, y_pred)
+        accuracy = self.accuracy_fn(y, y_pred)
+        return {'loss':loss, 'accuracy': accuracy}
 
     def summary(self, input_shape):
         x_in = Input(shape=input_shape, name='X')
